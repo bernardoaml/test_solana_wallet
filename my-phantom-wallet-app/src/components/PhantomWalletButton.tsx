@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { PublicKey } from '@solana/web3.js';
+import { LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
 import { Transition } from '@headlessui/react';
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 
 declare global {
   interface Window {
@@ -12,10 +13,38 @@ declare global {
 
 const PhantomWalletButton = () => {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const { publicKey, sendTransaction} = useWallet();
+  const { connection } = useConnection()
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showAlert, setShowAlert] = useState<boolean>(false);
 
   const WALLET_DISCONNECTED = 'walletDisconnected';
+  const sendSol = async () => {
+    
+   
+    if (!publicKey) {
+      console.error("Wallet not connected");
+      return;
+    }
+   
+    try {
+      const recipientPubKey = new PublicKey('9KBg9gjskFjYWx4KjsXwFLJZaVX5FX52GHghzkELtYws');
+   
+      const transaction = new Transaction();
+      const sendSolInstruction = SystemProgram.transfer({
+        fromPubkey: publicKey,
+        toPubkey: recipientPubKey,
+        lamports: 0.001 * LAMPORTS_PER_SOL,
+      });
+   
+      transaction.add(sendSolInstruction);
+   
+      const signature = await sendTransaction(transaction, connection);
+      console.log(`Transaction signature: ${signature}`);
+    } catch (error) {
+      console.error("Transaction failed", error);
+    }
+  };
 
   // Function to connect to the Phantom Wallet
   const connectWallet = async () => {
@@ -93,6 +122,9 @@ const PhantomWalletButton = () => {
               className="mt-4 w-full px-6 py-3 text-white bg-red-500 rounded-lg hover:bg-red-600 transition-all"
             >
               Disconnect Wallet
+            </button>
+            <button onClick={sendSol} className='mt-4 w-full px-6 py-3 text-white bg-red-500 rounded-lg hover:bg-red-600 transition-all'>
+              Teste Send Sol
             </button>
           </>
         ) : (

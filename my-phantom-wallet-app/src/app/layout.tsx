@@ -1,6 +1,14 @@
+
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { useMemo } from "react";
+import {
+  ConnectionProvider,
+  WalletProvider,
+} from "@solana/wallet-adapter-react";
+import { clusterApiUrl } from "@solana/web3.js";
+import "@solana/wallet-adapter-react-ui/styles.css";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -23,13 +31,19 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const endpoint = clusterApiUrl("devnet");
+  const wallets = useMemo(() => [], []);
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
+      <ConnectionProvider endpoint={endpoint}>
+        <WalletProvider wallets={wallets}>
+          <body
+            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          >
+            {children}
+          </body>
+        </WalletProvider>
+      </ConnectionProvider>
     </html>
   );
 }

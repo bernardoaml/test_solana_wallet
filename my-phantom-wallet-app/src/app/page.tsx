@@ -1,9 +1,9 @@
 import PhantomWalletButton from "@/components/PhantomWalletButton";
-
-const Home = () => (
-  <div>
-    <PhantomWalletButton />
-  </div>
-);
-
-export default Home;
+ 
+export default  async function () { 
+  return (
+    <div>
+       <PhantomWalletButton/>
+    </div>
+  );
+};
