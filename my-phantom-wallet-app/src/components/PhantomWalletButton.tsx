@@ -15,6 +15,8 @@ const PhantomWalletButton = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showAlert, setShowAlert] = useState<boolean>(false);
 
+  const WALLET_DISCONNECTED = 'walletDisconnected';
+
   // Function to connect to the Phantom Wallet
   const connectWallet = async () => {
     try {
@@ -24,6 +26,9 @@ const PhantomWalletButton = () => {
         const response = await solana.connect({ onlyIfTrusted: false });
         setWalletAddress(response.publicKey.toString());
         console.log('Connected to wallet:', response.publicKey.toString());
+
+        // Remove any previous disconnect flag
+        localStorage.removeItem(WALLET_DISCONNECTED);
       } else {
         setErrorMessage('Phantom Wallet not found. Please install the extension.');
       }
@@ -38,9 +43,14 @@ const PhantomWalletButton = () => {
     try {
       window.solana.disconnect();
       setWalletAddress(null);
+
+      // Set a flag in localStorage to prevent auto-connection
+      localStorage.setItem(WALLET_DISCONNECTED, 'true');
       setShowAlert(true); // Show alert when wallet is disconnected
       console.log('Wallet disconnected.');
-      setTimeout(() => setShowAlert(false), 3000); // Hide alert after 3 seconds
+
+      // Hide the alert after 3 seconds
+      setTimeout(() => setShowAlert(false), 3000);
     } catch (error: any) {
       console.error('Error disconnecting the wallet:', error.message);
       setErrorMessage(`Error disconnecting: ${error.message}`);
@@ -52,6 +62,10 @@ const PhantomWalletButton = () => {
     const checkIfWalletIsConnected = async () => {
       try {
         const { solana } = window;
+
+        // If a disconnect flag is present, skip auto-connection
+        const isDisconnected = localStorage.getItem(WALLET_DISCONNECTED);
+        if (isDisconnected) return;
 
         if (solana?.isPhantom) {
           const response = await solana.connect({ onlyIfTrusted: true });
@@ -113,6 +127,7 @@ const PhantomWalletButton = () => {
 };
 
 export default PhantomWalletButton;
+
 
 
 
