@@ -11,35 +11,34 @@ declare global {
   }
 }
 
+// mint
+// destiny public key
+// release dates
+// token amount per release dates
+
 const PhantomWalletButton = () => {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const { publicKey, sendTransaction} = useWallet();
+  const { wallet } = useWallet();
   const { connection } = useConnection()
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showAlert, setShowAlert] = useState<boolean>(false);
 
   const WALLET_DISCONNECTED = 'walletDisconnected';
+
   const sendSol = async () => {
-    
-   
-    if (!publicKey) {
-      console.error("Wallet not connected");
-      return;
-    }
-   
     try {
+      await wallet?.adapter.connect();
       const recipientPubKey = new PublicKey('9KBg9gjskFjYWx4KjsXwFLJZaVX5FX52GHghzkELtYws');
    
       const transaction = new Transaction();
       const sendSolInstruction = SystemProgram.transfer({
-        fromPubkey: publicKey,
+        fromPubkey: new PublicKey(walletAddress || ""),
         toPubkey: recipientPubKey,
         lamports: 0.001 * LAMPORTS_PER_SOL,
       });
-   
       transaction.add(sendSolInstruction);
-   
-      const signature = await sendTransaction(transaction, connection);
+
+      const signature = await wallet?.adapter.sendTransaction(transaction, connection);
       console.log(`Transaction signature: ${signature}`);
     } catch (error) {
       console.error("Transaction failed", error);
@@ -51,11 +50,11 @@ const PhantomWalletButton = () => {
     try {
       const { solana } = window;
 
-      if (solana && solana.isPhantom) {
+      if (solana && solana.isPhantom) {        
         const response = await solana.connect({ onlyIfTrusted: false });
         setWalletAddress(response.publicKey.toString());
         console.log('Connected to wallet:', response.publicKey.toString());
-
+        console.log("connected")
         // Remove any previous disconnect flag
         localStorage.removeItem(WALLET_DISCONNECTED);
       } else {
@@ -159,7 +158,3 @@ const PhantomWalletButton = () => {
 };
 
 export default PhantomWalletButton;
-
-
-
-
