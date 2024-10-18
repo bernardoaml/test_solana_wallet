@@ -1,106 +1,83 @@
 "use client";
-
-import { useState, useEffect } from 'react';
-import { LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { Transition } from '@headlessui/react';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import usePhantomAdapter from '@/hooks/usePhantomAdapter';
+import { storageAutoAdapterConnectKey } from '@/app/page';
 
 const PhantomWalletButton = () => {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const { wallet } = useWallet();
-  const { connection } = useConnection()
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showAlert, setShowAlert] = useState<boolean>(false);
-
-  const WALLET_DISCONNECTED = 'walletDisconnected';
-
-  const sendSol = async () => {
-    try {
-      await wallet?.adapter.connect();
-      const recipientPubKey = new PublicKey('9KBg9gjskFjYWx4KjsXwFLJZaVX5FX52GHghzkELtYws');
-   
-      const transaction = new Transaction();
-      const sendSolInstruction = SystemProgram.transfer({
-        fromPubkey: new PublicKey(walletAddress || ""),
-        toPubkey: recipientPubKey,
-        lamports: 0.001 * LAMPORTS_PER_SOL,
-      });
-      transaction.add(sendSolInstruction);
-
-      const signature = await wallet?.adapter.sendTransaction(transaction, connection);
-      console.log(`Transaction signature: ${signature}`);
-    } catch (error) {
-      console.error("Transaction failed", error);
-    }
-  };
+  const [autoAdapterConnect, setAutoAdapterConnect] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { adapter } = usePhantomAdapter();
 
   // Function to connect to the Phantom Wallet
   const connectWallet = async () => {
     try {
-      const { solana } = window;
-
-      if (solana && solana.isPhantom) {        
-        const response = await solana.connect({ onlyIfTrusted: false });
-        setWalletAddress(response.publicKey.toString());
-        console.log('Connected to wallet:', response.publicKey.toString());
-        console.log("connected")
-        // Remove any previous disconnect flag
-        localStorage.removeItem(WALLET_DISCONNECTED);
-      } else {
+      if (!adapter) {
         setErrorMessage('Phantom Wallet not found. Please install the extension.');
+        return;
       }
-    } catch (error: any) {
-      console.error('Error connecting to wallet:', error.message);
-      setErrorMessage(`Unexpected error: ${error.message}`);
+      await adapter.connect();
+      if (!adapter.publicKey) {
+        setErrorMessage("Something went wrong");
+        return;
+      }
+      setWalletAddress(adapter.publicKey.toBase58());
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error('Error connecting to wallet:', error.message);
+        setErrorMessage(`Unexpected error: ${error.message}`);
+      } else {
+        console.error(error);
+      }
     }
   };
 
   // Function to disconnect the wallet
-  const disconnectWallet = () => {
+  const disconnectWallet = async () => {
     try {
-      window.solana.disconnect();
+      if (!adapter) {
+        setErrorMessage('Phantom Wallet not found. Please install the extension.');
+        return;
+      }
+      await adapter.disconnect();
+      setAutoAdapterConnect(false);
+      localStorage.setItem(storageAutoAdapterConnectKey, "false");
       setWalletAddress(null);
-
-      // Set a flag in localStorage to prevent auto-connection
-      localStorage.setItem(WALLET_DISCONNECTED, 'true');
-      setShowAlert(true); // Show alert when wallet is disconnected
-      console.log('Wallet disconnected.');
-
+      setShowAlert(true); // Show alert when wallet is disconnecte
       // Hide the alert after 3 seconds
       setTimeout(() => setShowAlert(false), 3000);
-    } catch (error: any) {
-      console.error('Error disconnecting the wallet:', error.message);
-      setErrorMessage(`Error disconnecting: ${error.message}`);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error('Error connecting to wallet:', error.message);
+        setErrorMessage(`Unexpected error: ${error.message}`);
+      } else {
+        console.error(error);
+      }
     }
   };
 
-  // Check if the wallet is already connected
+  const handleAutoAdapterConnect = async (ev: ChangeEvent<HTMLInputElement>) => {
+    localStorage.setItem(storageAutoAdapterConnectKey, String(ev.currentTarget.checked));
+    setAutoAdapterConnect(ev.currentTarget.checked);
+  }
+
   useEffect(() => {
-    const checkIfWalletIsConnected = async () => {
-      try {
-        const { solana } = window;
-
-        // If a disconnect flag is present, skip auto-connection
-        const isDisconnected = localStorage.getItem(WALLET_DISCONNECTED);
-        if (isDisconnected) return;
-
-        if (solana?.isPhantom) {
-          const response = await solana.connect({ onlyIfTrusted: true });
-          setWalletAddress(response.publicKey.toString());
-          console.log('Wallet already connected:', response.publicKey.toString());
-        }
-      } catch (error: any) {
-        console.error('Error checking wallet connection:', error.message);
-      }
-    };
-
-    // checkIfWalletIsConnected();
-  }, []);
+    if (localStorage.getItem(storageAutoAdapterConnectKey) === "true" && adapter) {
+      connectWallet().finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, [adapter]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500">
       <div className="p-8 bg-white rounded-lg shadow-lg">
-        {walletAddress ? (
+        {loading ? (
+          <p className="text-2xl font-semibold text-gray-800">Loading...</p>
+        ) : walletAddress ? (
           <>
             <p className="text-2xl font-semibold text-gray-800">
               Connected: <span className="text-green-600">{walletAddress}</span>
@@ -111,17 +88,28 @@ const PhantomWalletButton = () => {
             >
               Disconnect Wallet
             </button>
-            <button onClick={sendSol} className='mt-4 w-full px-6 py-3 text-white bg-red-500 rounded-lg hover:bg-red-600 transition-all'>
-              Teste Send Sol
-            </button>
           </>
         ) : (
-          <button
-            onClick={connectWallet}
-            className="w-full px-6 py-3 text-white bg-green-500 rounded-lg hover:bg-green-600 transition-all"
-          >
-            Connect Phantom Wallet
-          </button>
+          <>
+            <button
+              onClick={connectWallet}
+              className="w-full px-6 py-3 text-white bg-green-500 rounded-lg hover:bg-green-600 transition-all"
+            >
+              Connect Phantom Wallet
+            </button>
+            <input
+              id="auto-connect-option"
+              type="checkbox"
+              checked={autoAdapterConnect || false}
+              onChange={handleAutoAdapterConnect}
+            />
+            <label
+              htmlFor="auto-connect-option"
+              className="text-black ml-1"
+            >
+              Auto Connect
+            </label>
+          </>
         )}
         {errorMessage && (
           <p className="mt-4 text-red-600 font-semibold">{errorMessage}</p>

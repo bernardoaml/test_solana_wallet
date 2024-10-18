@@ -14,14 +14,14 @@ interface VestingResult extends Omit<GetLockReturn, "instructions"> {
   txSignature: string;
 }
 
-const AdvancedTokenForm = () => {
+const VestingForm = () => {
   const [mint, setMint] = useState('');
   const [destinyKey, setDestinyKey] = useState('');
   const [releaseDates, setReleaseDates] = useState<Date[]>([]);
   const [tokenAmount, setTokenAmount] = useState<number | ''>(1000000);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [vestingResult, setVestingResult] = useState<VestingResult | null>(null);
-  const { adapter, error } = usePhantomAdapter();
+  const { adapter } = usePhantomAdapter();
   const { connection } = useConnection();
 
   const addReleaseDate = (date: Date | null) => {
@@ -45,12 +45,8 @@ const AdvancedTokenForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (error) {
-      setErrorMessage(error.message);
-      return;
-    }
     if (!adapter) {
-      setErrorMessage("Phantom not found");
+      setErrorMessage("Phantom Wallet not found. Please install it.");
       return;
     }
     setErrorMessage(null);
@@ -282,4 +278,4 @@ const AdvancedTokenForm = () => {
   );
 };
 
-export default AdvancedTokenForm;
+export default VestingForm;

@@ -5,20 +5,18 @@ import { useEffect, useState } from "react";
 
 interface AdapterState {
   adapter: Adapter | null;
-  error: Error | null;
 }
 
 export default function usePhantomAdapter(): AdapterState {
   const { wallets } = useWallet();
-  const [adapterState, setAdapterState] = useState<AdapterState>({ adapter: null, error: null })
+  const [adapterState, setAdapterState] = useState<AdapterState>({ adapter: null });
 
   useEffect(() => {
     const phantom = wallets.find((wallet) => wallet.adapter.name === "Phantom");
     if (!phantom) {
-      setAdapterState({ error: new Error("Phantom not found. Install it"), adapter: null });
       return;
     }
-    setAdapterState({ adapter: phantom.adapter, error: null });
+    setAdapterState({ adapter: phantom.adapter });
   }, [wallets]);
 
   return adapterState;
