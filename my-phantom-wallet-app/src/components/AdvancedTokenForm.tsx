@@ -134,7 +134,7 @@ const AdvancedTokenForm = () => {
             id="mint"
             value={mint}
             onChange={(e) => setMint(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 text-gray-700 focus:ring-blue-400 focus:border-transparent transition"
             placeholder="Enter Mint Address"
           />
         </div>
@@ -149,7 +149,7 @@ const AdvancedTokenForm = () => {
             id="destinyKey"
             value={destinyKey}
             onChange={(e) => setDestinyKey(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 text-gray-700 focus:ring-blue-400 focus:border-transparent transition"
             placeholder="Enter Public Key"
           />
         </div>
@@ -195,7 +195,7 @@ const AdvancedTokenForm = () => {
             id="tokenAmount"
             value={tokenAmount}
             onChange={(e) => setTokenAmount(parseFloat(e.target.value) || '')}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none text-gray-700 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
             placeholder="Enter Token Amount (e.g., 0.00001)"
           />
         </div>
