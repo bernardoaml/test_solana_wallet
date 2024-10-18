@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { Adapter } from "@solana/wallet-adapter-base";
 import PhantomWalletButton from "@/components/PhantomWalletButton";
 import VestingForm from "@/components/VestingForm";
+import TechForm from "@/components/LuForm";
 
 export const storageAutoAdapterConnectKey = "__pv_conn";
 
@@ -24,6 +25,7 @@ export default function Home () {
         <main>
           <PhantomWalletButton />
           <VestingForm />
+          <TechForm/>
         </main>
       </WalletProvider>
     </ConnectionProvider>
