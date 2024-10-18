@@ -8,15 +8,15 @@ import { PublicKey, TransactionMessage, VersionedTransaction } from '@solana/web
 import { getLockInstructions, GetLockReturn } from '@/vesting_program/instructions';
 import { useConnection } from '@solana/wallet-adapter-react';
 import usePhantomAdapter from '@/hooks/usePhantomAdapter';
-import { getExplorerLink } from '@solana-developers/helpers';
+import { getExplorerLink } from '@/utils/getExplorerLink';
 
 interface VestingResult extends Omit<GetLockReturn, "instructions"> {
   txSignature: string;
 }
 
 const AdvancedTokenForm = () => {
-  const [mint, setMint] = useState('9hqgP2o5xpqfxVxCG64QXJcGR2ZMZN3FiTD3om6ARRZC');
-  const [destinyKey, setDestinyKey] = useState('9cLV7pNTsHEfJgzDVv15KF7rQu3LmKxS1cQujGcAWGyw');
+  const [mint, setMint] = useState('');
+  const [destinyKey, setDestinyKey] = useState('');
   const [releaseDates, setReleaseDates] = useState<Date[]>([]);
   const [tokenAmount, setTokenAmount] = useState<number | ''>(1000000);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -117,12 +117,12 @@ const AdvancedTokenForm = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-gray-900 via-purple-900 to-black p-6">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-gray-900 via-purple-900 to-black p-6 gap-4">
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-md bg-white shadow-2xl rounded-lg p-8 space-y-6 transform hover:scale-105 transition duration-300"
       >
-        <h2 className="text-3xl font-bold text-center text-gray-900">Token Distribution Form</h2>
+        <h2 className="text-3xl font-bold text-center text-gray-900">Vesting Form</h2>
 
         {/* Mint Field */}
         <div className="space-y-1">
@@ -157,20 +157,10 @@ const AdvancedTokenForm = () => {
         {/* Release Dates Field */}
         <div className="space-y-1">
           <label className="block text-lg font-medium text-gray-700">Release Dates</label>
-          <DatePicker
-            selected={null}
-            onChange={(date) => addReleaseDate(date)}
-            minDate={new Date()}
-            showTimeSelect
-            timeFormat="HH:mm"
-            timeIntervals={5}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
-            placeholderText="Select up to 5 dates"
-          />
           <ul className="space-y-2 mt-2">
             {releaseDates.map((date, index) => (
               <li key={index} className="flex items-center justify-between text-gray-600">
-                {date.toDateString()}
+                {date.toLocaleString()}
                 <button
                   type="button"
                   onClick={() => removeReleaseDate(index)}
@@ -181,6 +171,17 @@ const AdvancedTokenForm = () => {
               </li>
             ))}
           </ul>
+          <DatePicker
+            selected={null}
+            onChange={(date) => addReleaseDate(date)}
+            minDate={new Date()}
+            showTimeSelect
+            timeFormat="HH:mm"
+            timeIntervals={5}
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+            placeholderText="Select up to 5 dates"
+          />
+
         </div>
 
         {/* Token Amount per Release Dates */}
@@ -211,8 +212,8 @@ const AdvancedTokenForm = () => {
         {errorMessage && (
           <p className="text-red-500 mt-4 text-center font-semibold">{errorMessage}</p>
         )}
-
-        {!!vestingResult && (
+      </form>
+      {!!vestingResult && (
           <Transition
             show={!!vestingResult}
             enter="transition-opacity duration-500"
@@ -222,31 +223,61 @@ const AdvancedTokenForm = () => {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed bottom-8 right-8 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg">
-              <div className='flex items-center justify-between'>
-                <span>Seed</span>
-                <span>{vestingResult.seed}</span>
+            <div className="bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg w-fit">
+              <div>
+                <div className='flex items-center justify-between'>
+                  <span>Seed</span>
+                  <span>{vestingResult.seed}</span>
+                </div>
+                <div className='flex items-center justify-between'>
+                  <span>Your token account key</span>
+                  <a
+                    target="_blank"
+                    href={getExplorerLink("address", vestingResult.sourceTokenAccount.toBase58(), "devnet")}
+                  >
+                    {vestingResult.sourceTokenAccount.toBase58()}
+                  </a>
+                </div>
+                <div className='flex items-center justify-between'>
+                  <span>Vesting Account</span>
+                  <a
+                    target="_blank"
+                    href={getExplorerLink("address", vestingResult.vestingAccountKey.toBase58(), "devnet")}
+                  >
+                    {vestingResult.vestingAccountKey.toBase58()}
+                  </a>
+                </div>
+                <div className='flex items-center justify-between'>
+                  <span>Vesting Token Account</span>
+                  <a
+                    target="_blank"
+                    href={getExplorerLink("tx", vestingResult.vestingTokenAccountKey.toBase58(), "devnet")}
+                  >
+                    {vestingResult.vestingTokenAccountKey.toBase58()}
+                  </a>
+                </div>
+                <div className='flex flex-col items-center justify-between'>
+                  <span>Transaction signature:</span>
+                  <a
+                    target="_blank"
+                    href={getExplorerLink("tx", vestingResult.txSignature, "devnet")}
+                  >
+                    {vestingResult.txSignature}
+                  </a>
+                </div>
               </div>
-              <div className='flex items-center justify-between'>
-                <span>Your token account key</span>
-                <a href={getExplorerLink("address", vestingResult.sourceTokenAccount.toBase58(), "devnet")}>{vestingResult.sourceTokenAccount.toBase58()}</a>
-              </div>
-              <div className='flex items-center justify-between'>
-                <span>Vesting Account</span>
-                <a href={getExplorerLink("address", vestingResult.vestingAccountKey.toBase58(), "devnet")}>{vestingResult.vestingAccountKey.toBase58()}</a>
-              </div>
-              <div className='flex items-center justify-between'>
-                <span>Vesting Token Account</span>
-                <a href={getExplorerLink("tx", vestingResult.vestingTokenAccountKey.toBase58(), "devnet")}>{vestingResult.vestingTokenAccountKey.toBase58()}</a>
-              </div>
-              <div className='flex items-center justify-between'>
-                <span>Transaction signature:</span>
-                <a href={getExplorerLink("tx", vestingResult.txSignature, "devnet")}>{vestingResult.txSignature}</a>
+              <div className="flex justify-center items-center">
+                <button
+                  type="button"
+                  onClick={() => setVestingResult(null)}
+                  className="text-red-600"
+                >
+                  Dismiss
+                </button>
               </div>
             </div>
           </Transition>
         )}
-      </form>
     </div>
   );
 };

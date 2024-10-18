@@ -282,13 +282,6 @@ export async function prepareLock(
 
   seedWord = Buffer.from(seedWord.toString('hex') + bump.toString(16), 'hex');
 
-  console.log(
-    'Vesting contract account pubkey: ',
-    vestingAccountKey.toBase58(),
-  );
-
-  console.log('contract ID: ', bs58.encode(seedWord));
-
   const check_existing = await connection.getAccountInfo(vestingAccountKey);
   if (!!check_existing) {
     throw 'Contract already exists.';
@@ -471,7 +464,6 @@ export async function getLockInstructions(
   let hasTokenBalance = false;
   try {
     const account = await spl.getAccount(connection, sourceTokenAccount, connection.commitment);
-    console.log(account.amount)
     hasTokenBalance = account.amount >= unlockDates.length  * amountPerSchedule * Math.pow(10, decimals);
   } catch (err) {
     throw new Error("Source token account should exist");

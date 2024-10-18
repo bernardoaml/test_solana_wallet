@@ -13,7 +13,6 @@ export default function usePhantomAdapter(): AdapterState {
   const [adapterState, setAdapterState] = useState<AdapterState>({ adapter: null, error: null })
 
   useEffect(() => {
-    console.log(wallets)
     const phantom = wallets.find((wallet) => wallet.adapter.name === "Phantom");
     if (!phantom) {
       setAdapterState({ error: new Error("Phantom not found. Install it"), adapter: null });
