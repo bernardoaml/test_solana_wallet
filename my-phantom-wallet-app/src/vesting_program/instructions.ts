@@ -1,6 +1,5 @@
 import * as web3 from '@solana/web3.js';
 import * as spl from '@solana/spl-token';
-import bs58 from 'bs58';
 import { ContractInfo, Schedule } from './state';
 import { generateRandomSeed, Numberu32, Numberu64 } from './utils';
 
@@ -30,7 +29,15 @@ export interface GetLockReturn extends PrepareLockReturn {
   seed: string;
 }
 
-export function   createInitInstruction(
+export interface PrepareUnlockReturn {
+  contractInfo: ContractInfo;
+  instructions: web3.TransactionInstruction[];
+  vestingAccountKey: web3.PublicKey;
+}
+
+export type GetUnlockReturn = PrepareUnlockReturn;
+
+export function createInitInstruction(
   systemProgramId: web3.PublicKey,
   vestingProgramId: web3.PublicKey,
   payerKey: web3.PublicKey,
@@ -326,12 +333,12 @@ export async function prepareLock(
  * @param mintAddress The mint of the vested tokens
  * @returns An array of `web3.TransactionInstruction`
  */
-export async function prepareUnlockInstructions(
+export async function prepareUnlock(
   connection: web3.Connection,
   programId: web3.PublicKey,
   seedWord: Buffer | Uint8Array,
   mintAddress: web3.PublicKey,
-): Promise<Array<web3.TransactionInstruction>> {
+): Promise<PrepareUnlockReturn> {
   seedWord = seedWord.slice(0, 31);
   const [vestingAccountKey, bump] = await web3.PublicKey.findProgramAddress(
     [seedWord],
@@ -345,21 +352,21 @@ export async function prepareUnlockInstructions(
     true,
   );
 
-  const vestingInfo = await getContractInfo(connection, vestingAccountKey);
+  const contractInfo = await getContractInfo(connection, vestingAccountKey);
 
-  const instruction = [
+  const instructions = [
     createUnlockInstruction(
       programId,
       spl.TOKEN_PROGRAM_ID,
       web3.SYSVAR_CLOCK_PUBKEY,
       vestingAccountKey,
       vestingTokenAccountKey,
-      vestingInfo.destinationAddress,
+      contractInfo.destinationAddress,
       [seedWord],
     ),
   ];
 
-  return instruction;
+  return { contractInfo, instructions, vestingAccountKey };
 }
 
 /**
@@ -372,7 +379,6 @@ export async function getContractInfo(
   connection: web3.Connection,
   vestingAccountKey: web3.PublicKey,
 ): Promise<ContractInfo> {
-  console.log('Fetching contract ', vestingAccountKey.toBase58());
   const vestingInfo = await connection.getAccountInfo(
     vestingAccountKey,
     'single',
@@ -519,5 +525,5 @@ export async function getUnlockInstructions(
   seed: string,
   mint: web3.PublicKey,
 ) {
-  return prepareUnlockInstructions(connection, TOKEN_VESTING_PROGRAM_ID, Buffer.from(seed), mint);
+  return prepareUnlock(connection, TOKEN_VESTING_PROGRAM_ID, Buffer.from(seed), mint);
 }
