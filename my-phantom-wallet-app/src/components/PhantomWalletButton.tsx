@@ -5,17 +5,6 @@ import { LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from '@solana
 import { Transition } from '@headlessui/react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 
-declare global {
-  interface Window {
-    solana?: any;
-  }
-}
-
-// mint
-// destiny public key
-// release dates
-// token amount per release dates
-
 const PhantomWalletButton = () => {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const { wallet } = useWallet();
@@ -105,7 +94,7 @@ const PhantomWalletButton = () => {
       }
     };
 
-    checkIfWalletIsConnected();
+    // checkIfWalletIsConnected();
   }, []);
 
   return (
