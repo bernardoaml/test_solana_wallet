@@ -15,10 +15,10 @@ interface VestingResult extends Omit<GetLockReturn, "instructions"> {
 }
 
 const VestingForm = () => {
-  const [mint, setMint] = useState('');
-  const [destinyKey, setDestinyKey] = useState('');
+  const [mint, setMint] = useState('F8pzmeKVzhrhA6kJGwpMPJvgzXS5FTtmnd9gkKkisnJN');
+  const [destinyKey, setDestinyKey] = useState('2HzPfit8cE94TK79zoh26g5d2zdgY7b5hwvqXpppneBx');
   const [releaseDates, setReleaseDates] = useState<Date[]>([]);
-  const [tokenAmount, setTokenAmount] = useState<number | ''>(1000000);
+  const [tokenAmount, setTokenAmount] = useState<number>(1000000);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [vestingResult, setVestingResult] = useState<VestingResult | null>(null);
   const { adapter } = usePhantomAdapter();
@@ -190,7 +190,7 @@ const VestingForm = () => {
             step="0.00001"
             id="tokenAmount"
             value={tokenAmount}
-            onChange={(e) => setTokenAmount(parseFloat(e.target.value) || '')}
+            onChange={(e) => setTokenAmount(parseFloat(e.target.value) || 0)}
             className="w-full px-4 py-2 border rounded-lg focus:outline-none text-gray-700 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
             placeholder="Enter Token Amount (e.g., 0.00001)"
           />

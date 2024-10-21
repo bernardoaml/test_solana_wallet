@@ -13,7 +13,7 @@ interface UnlockResult extends Omit<GetUnlockReturn, "instructions"> {
 
 const UnlockForm = () => {
   const [seed, setSeed] = useState<string>('');
-  const [mint, setMint] = useState("");
+  const [mint, setMint] = useState("F8pzmeKVzhrhA6kJGwpMPJvgzXS5FTtmnd9gkKkisnJN");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [unlockResult, setUnlockResult] = useState<UnlockResult | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);

@@ -7,7 +7,8 @@ import { generateRandomSeed, Numberu32, Numberu64 } from './utils';
  * The vesting schedule program ID on mainnet
  */
 export const TOKEN_VESTING_PROGRAM_ID = new web3.PublicKey(
-  '7goRg4PCntCSBsAKKTvajQ4aJoXqT8ZF7ciKMmxBQ4zD',
+  // 'DUWJ3aSeAX8v5oAVh3ttw62jjXRupfvoZ8PeuoNx1Apa',
+  '5WgPG8cf4C8w7Yk3FsS3BaENPvkKpKWNm6Sj7J8pmuRM'
 );
 export const TECH_HOUSE_FEE_WALLET = new web3.PublicKey(
   "8qQKCLffmpp9415i4g6WdibjA146UMFk4MndxfWuGVZc",

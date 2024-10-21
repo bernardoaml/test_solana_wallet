@@ -26,25 +26,30 @@ export class VestingScheduleHeader {
   destinationAddress!: PublicKey;
   mintAddress!: PublicKey;
   isInitialized!: boolean;
+  creationTime!: number;
 
   constructor(
     destinationAddress: PublicKey,
     mintAddress: PublicKey,
     isInitialized: boolean,
+    creationTime: number,
   ) {
     this.destinationAddress = destinationAddress;
     this.mintAddress = mintAddress;
     this.isInitialized = isInitialized;
+    this.creationTime = creationTime;
   }
 
   static fromBuffer(buf: Buffer): VestingScheduleHeader {
     const destinationAddress = new PublicKey(buf.slice(0, 32));
     const mintAddress = new PublicKey(buf.slice(32, 64));
-    const isInitialized = buf[64] == 1;
+    const creationTime = Number(buf.slice(64, 74).join(""));
+    const isInitialized = buf[74] == 1;
     const header: VestingScheduleHeader = {
       destinationAddress,
       mintAddress,
       isInitialized,
+      creationTime,
     };
     return header;
   }
@@ -53,30 +58,34 @@ export class VestingScheduleHeader {
 export class ContractInfo {
   destinationAddress!: PublicKey;
   mintAddress!: PublicKey;
+  creationTime!: number;
   schedules!: Array<Schedule>;
 
   constructor(
     destinationAddress: PublicKey,
     mintAddress: PublicKey,
+    creationTime: number,
     schedules: Array<Schedule>,
   ) {
     this.destinationAddress = destinationAddress;
     this.mintAddress = mintAddress;
+    this.creationTime = creationTime;
     this.schedules = schedules;
   }
 
   static fromBuffer(buf: Buffer): ContractInfo | undefined {
-    const header = VestingScheduleHeader.fromBuffer(buf.slice(0, 65));
+    const header = VestingScheduleHeader.fromBuffer(buf.slice(0, 75));
     if (!header.isInitialized) {
       return undefined;
     }
     const schedules: Array<Schedule> = [];
-    for (let i = 65; i < buf.length; i += 16) {
+    for (let i = 75; i < buf.length; i += 16) {
       schedules.push(Schedule.fromBuffer(buf.slice(i, i + 16)));
     }
     return new ContractInfo(
       header.destinationAddress,
       header.mintAddress,
+      header.creationTime,
       schedules,
     );
   }
